@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js"></script>
+</head>
+<body>
+
+<style>
+html, body {
+	margin:0;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+}
+
+#bg {
+	width:100vw;
+	height:100vh;
+	background:green;
+}
+
+#fg {
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+#rot {
+	background:blue;
+	position:relative;
+	width:100%;
+	height:100%;
+	transform-origin:50% 0;
+}
+
+#controlsAbs {
+	position:absolute;
+	top:0;
+	left:0;
+	width:100vw;
+	height:100vh;
+}
+
+#controls {
+	height:100%;
+	width:100%;
+}
+
+#controls > div:first-child > canvas {
+	position:absolute;
+	top:80%;
+	left:80%;
+	transform:translate(-100px, -100px);
+}
+
+#controls > div:last-child > canvas {
+	position:absolute;
+	top:80%;
+	left:20%;
+	transform:translate(-100px, -100px);
+}
+
+</style>
+
+<div id="bg">
+</div>
+
+<div id="fg">
+	<div id="rot"></div>
+	<div style="position:absolute;top:50%;left:50%;padding:20px;background:white;transform:translate(-10px,-10px)"></div>
+</div>
+
+<!--<div style="position:absolute;height:100%;width:100%;top:0;left:0;">
+<div style="width:1px;height:100%;margin:0 auto;background:white;opacity:.4;"></div>
+</div>-->
+
+<div id="controlsAbs">
+	<div id="controls">
+		<input type="text" value="75" class="rotateKnob">
+		<input type="text" value="75" class="heightKnob">
+	</div>
+</div>
+
+
+
+<script>
+	var bg = $('#bg');
+	var fg = $('#fg');
+	var rot = $('#rot');
+	
+	function init() {
+		bg.css({'background' : getRandomColor()});
+		var wholeRgb = bg.css('background-color');
+		console.log(wholeRgb);
+		wholeRgb = wholeRgb.substr(4);
+		console.log(wholeRgb);
+		wholeRgb = wholeRgb.substr(0, wholeRgb.length - 1);
+		console.log(wholeRgb);
+		var fgColor = hexToComplimentary(wholeRgb);
+		fgColor = 'rgb(' + fgColor + ')';
+		console.log(fgColor);
+		rot.css({'background-color' : fgColor});
+		calcSize();
+		calcPos();
+		calcRot();
+	}
+	
+	function calcSize() {
+		var diag = diagonal(bg.width(), bg.height());
+		console.log("calculated diagonal", diag);
+		fg.width(diag * 2).height(diag * 2);
+		rot.width(diag * 2).height(diag * 2);
+	}
+	
+	function calcPos(hval) {
+		if (hval == undefined) hval = 0;
+		console.log("hval: " + hval);
+	
+		var w = bg.width();
+		var h = bg.height();
+		var wOff = (fg.width() - w) / 2;
+		console.log("wOff = (" + fg.width() + " - " + w + ") / 2");
+		var hOff = h - (h * (hval / 100));
+		console.log("hOff = (" + h + " - (" + h + " * " + "(" + hval + " / 100))"); 
+		var translate = 'translate(-' + wOff + 'px, ' + hOff + 'px)';
+		
+		console.log(translate);
+		
+		document.getElementById('fg').style.transform = translate;
+	}
+
+	function calcRot(rval) {
+		if (rval == undefined) rval = 0;
+		console.log("rval: " + rval);
+	
+		var rot = rval + 'deg';
+		var rotate = 'rotate(' + rot + ')';
+		
+		console.log(rotate);
+		
+		document.getElementById('rot').style.transform = rotate;
+	}
+	
+	function diagonal(l1, l2) {
+		return Math.sqrt(Math.pow(l1, 2) + Math.pow(l2, 2));
+	}
+	
+	$(function() {
+        $(".heightKnob")
+			.knob({
+				'change' : function(v) {
+					calcPos(v);
+				}
+			});
+		$(".heightKnob")
+			.val(0)
+			.trigger('change');
+			
+		$('.rotateKnob')
+			.knob({
+				'min' : -90,
+				'max' : 90,
+				'change' : function(v) {
+					calcRot(v);
+				}
+			})
+			
+		init();
+		$(window).resize(init);
+    });
+	
+/* https://stackoverflow.com/questions/1484506/random-color-generator */
+function getRandomColor() {
+  var letters = '0123456789ABCDEF';
+  var color = '#';
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+	
+/* hexToComplimentary : Converts hex value to HSL, shifts
+ * hue by 180 degrees and then converts hex, giving complimentary color
+ * as a hex value
+ * @param  [String] hex : hex value  
+ * @return [String] : complimentary color as hex value
+ * @source https://stackoverflow.com/questions/1664140/js-function-to-calculate-complementary-colour/37657940#37657940
+ */
+function hexToComplimentary(rgb){
+    // Get array of RGB values
+    rgb = rgb.replace(/[^\d,]/g, '').split(',');
+
+    var r = rgb[0], g = rgb[1], b = rgb[2];
+
+    // Convert RGB to HSL
+    // Adapted from answer by 0x000f http://stackoverflow.com/a/34946092/4939630
+    r /= 255.0;
+    g /= 255.0;
+    b /= 255.0;
+    var max = Math.max(r, g, b);
+    var min = Math.min(r, g, b);
+    var h, s, l = (max + min) / 2.0;
+
+    if(max == min) {
+        h = s = 0;  //achromatic
+    } else {
+        var d = max - min;
+        s = (l > 0.5 ? d / (2.0 - max - min) : d / (max + min));
+
+        if(max == r && g >= b) {
+            h = 1.0472 * (g - b) / d ;
+        } else if(max == r && g < b) {
+            h = 1.0472 * (g - b) / d + 6.2832;
+        } else if(max == g) {
+            h = 1.0472 * (b - r) / d + 2.0944;
+        } else if(max == b) {
+            h = 1.0472 * (r - g) / d + 4.1888;
+        }
+    }
+
+    h = h / 6.2832 * 360.0 + 0;
+
+    // Shift hue to opposite side of wheel and convert to [0-1] value
+    h+= 180;
+    if (h > 360) { h -= 360; }
+    h /= 360;
+
+    // Convert h s and l values into r g and b values
+    // Adapted from answer by Mohsen http://stackoverflow.com/a/9493060/4939630
+    if(s === 0){
+        r = g = b = l; // achromatic
+    } else {
+        var hue2rgb = function hue2rgb(p, q, t){
+            if(t < 0) t += 1;
+            if(t > 1) t -= 1;
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+            return p;
+        };
+
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+    }
+
+    r = Math.round(r * 255);
+    g = Math.round(g * 255); 
+    b = Math.round(b * 255);
+
+	return r + "," + g + "," + b;
+} 
+</script>
+
+</body>
+</html>
