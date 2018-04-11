@@ -1,22 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-Knob/1.2.13/jquery.knob.min.js"></script>
+	<meta name="viewport" content="width=device-width, user-scalable=no">
 </head>
 <body>
+<div id="antiScrollWrapper">
 
 <style>
 html, body {
 	margin:0;
-	width:100%;
+	height:100vh;
+}
+
+#antiScrollWrapper {
+	position:relative;
 	height:100%;
 	overflow:hidden;
 }
 
 #bg {
-	width:100vw;
-	height:100vh;
+	width:100%;
+	height:100%;
 	background:green;
 }
 
@@ -43,22 +49,31 @@ html, body {
 }
 
 #controls {
+	position:relative;
 	height:100%;
 	width:100%;
 }
 
-#controls > div:first-child > canvas {
+.inputWrapper {
 	position:absolute;
+	width:2.2cm;
+	height:2.2cm;
 	top:80%;
-	left:80%;
-	transform:translate(-100px, -100px);
+	transform:translate(-1.1cm, -1.1cm);
 }
 
-#controls > div:last-child > canvas {
-	position:absolute;
-	top:80%;
+.inputWrapper:first-child {
+	left:80%;
+}
+
+.inputWrapper:last-child {
 	left:20%;
-	transform:translate(-100px, -100px);
+}
+
+.inputWrapper > * {
+	position:relative;
+	width:100%;
+	height:100%;
 }
 
 </style>
@@ -68,21 +83,18 @@ html, body {
 
 <div id="fg">
 	<div id="rot"></div>
-	<div style="position:absolute;top:50%;left:50%;padding:20px;background:white;transform:translate(-10px,-10px)"></div>
 </div>
-
-<!--<div style="position:absolute;height:100%;width:100%;top:0;left:0;">
-<div style="width:1px;height:100%;margin:0 auto;background:white;opacity:.4;"></div>
-</div>-->
 
 <div id="controlsAbs">
 	<div id="controls">
-		<input type="text" value="75" class="rotateKnob">
-		<input type="text" value="75" class="heightKnob">
+		<div class="inputWrapper">
+			<input id="rotateKnob" data-width="100%" class="ctrl" type="text" value="0">
+		</div>
+		<div class="inputWrapper">
+			<input id="heightKnob" data-width="100%" class="ctrl" type="text" value="0">
+		</div>
 	</div>
 </div>
-
-
 
 <script>
 	var bg = $('#bg');
@@ -90,20 +102,19 @@ html, body {
 	var rot = $('#rot');
 	
 	function init() {
-		bg.css({'background' : getRandomColor()});
-		var wholeRgb = bg.css('background-color');
-		console.log(wholeRgb);
-		wholeRgb = wholeRgb.substr(4);
-		console.log(wholeRgb);
-		wholeRgb = wholeRgb.substr(0, wholeRgb.length - 1);
-		console.log(wholeRgb);
-		var fgColor = hexToComplimentary(wholeRgb);
-		fgColor = 'rgb(' + fgColor + ')';
-		console.log(fgColor);
-		rot.css({'background-color' : fgColor});
 		calcSize();
 		calcPos();
 		calcRot();
+	}
+	
+	function calcColors() {
+		bg.css({'background' : getRandomColor()});
+		var wholeRgb = bg.css('background-color');
+		wholeRgb = wholeRgb.substr(4);
+		wholeRgb = wholeRgb.substr(0, wholeRgb.length - 1);
+		var fgColor = hexToComplimentary(wholeRgb);
+		fgColor = 'rgb(' + fgColor + ')';
+		rot.css({'background-color' : fgColor});
 	}
 	
 	function calcSize() {
@@ -147,7 +158,7 @@ html, body {
 	}
 	
 	$(function() {
-        $(".heightKnob")
+        $("#heightKnob")
 			.knob({
 				'change' : function(v) {
 					calcPos(v);
@@ -157,7 +168,7 @@ html, body {
 			.val(0)
 			.trigger('change');
 			
-		$('.rotateKnob')
+		$('#rotateKnob')
 			.knob({
 				'min' : -90,
 				'max' : 90,
@@ -166,6 +177,7 @@ html, body {
 				}
 			})
 			
+		calcColors();
 		init();
 		$(window).resize(init);
     });
@@ -256,5 +268,6 @@ function hexToComplimentary(rgb){
 } 
 </script>
 
+</div>
 </body>
 </html>
